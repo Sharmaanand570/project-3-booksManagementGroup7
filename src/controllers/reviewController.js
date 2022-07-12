@@ -52,6 +52,7 @@ const createReview = async function (req, res) {
 }
 
 // <<<<<<<<<<<<=======Update review function ==========>>>>>>>>>>//
+
 const updateReview = async function (req, res) {
     try {
         let { bookId, reviewId } = req.params
@@ -109,7 +110,7 @@ const updateReview = async function (req, res) {
     }
 }
 
-//<<<<<<<<<<<<<<<===========Delte Book Review===========>>>>>>>>>>>>>>>>
+//<<<<<<<<<<<<<<<===========Delte Book Review===========>>>>>>>>>>>>>>>>//
 
 const deleteBookReview = async function(req,res){
     try{
