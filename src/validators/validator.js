@@ -20,18 +20,26 @@ function validTitle(value) {
 }
 
 const isValidArray = (value) => {
-    if (Array.isArray(value)) {
+    if (Array.isArray(value) && value.length>0) {
         for (let i = 0; i < value.length; i++) {
             if (value[i].trim().length === 0 || typeof (value[i]) !== "string") { return false }
         }
         return true
-    } else { return false }
+    } 
+    else { 
+        return false 
+    }
 }
 
 const isValidISBN = (value) => {
-    const regEx = /^\s*\978([0-9]){10}\s*$/
-    const result = regEx.test(value)
-    return result
+    const regEx1 = /^\s*\978([0-9]){10}\s*$/
+    const regEx2 = /^\s*([0-9]){10}\s*$/
+    if(regEx1.test(value) || regEx2.test(value)){
+        return true
+    }
+    else{
+        return false
+    }
 }
 
 const isValidDate = (value) => {

@@ -12,33 +12,38 @@ const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])[\w!@#$
 
 const createUser = async function (req, res) {
    try {
-      let userData = req.body
-      if (!isValidObject(userData)) {
+      if (!isValidObject(req.body)) {
          res.status(400).send({ status: false, message: "Provide all mandatory user information" })
-      } else {
-         let { title, name, phone, email, password, address } = userData
+      }
+      else {
+         let { title, name, phone, email, password, address } = req.body
+         userData = { title, name, phone, email: email, password, address }
+
          // validation for all fields
-         let inValid = " "
+         let inValid = ""
          if (!validTitle(title)) inValid = inValid + "title, "
-         if (!isValid(name) || !nameRegex.test(name)) inValid = inValid + "name,"
-         if (!isValid(phone) || !mobileRegex.test(phone)) inValid = inValid + "phone,"
-         if (!isValid(email) || !emailRegex.test(email)) inValid = inValid + "email, "
-         if (!isValid(title) || !isValid(name) || !nameRegex.test(name) || !isValid(phone) || !mobileRegex.test(phone) || !isValid(email) || !emailRegex.test(email)) {
-            return res.status(400).send({ status: false, message: `Pliz provide valid ${inValid} and it is mandatory fields` })
+         if (!isValid(name) || !nameRegex.test(name)) inValid = inValid + "name, "
+         if (!isValid(phone) || !mobileRegex.test(phone)) inValid = inValid + "phone, "
+         if (!isValid(email) || !emailRegex.test(email)) inValid = inValid + "email "
+         if (!validTitle(title) || !isValid(name) || !nameRegex.test(name) || !isValid(phone) || !mobileRegex.test(phone) || !isValid(email) || !emailRegex.test(email)) {
+            return res.status(400).send({ status: false, message: `Pliz provide valid ${inValid}and it is mandatory fields` })
          }
+
+         //  checking email or phone number unique or not here 
+         let uniqueEmail = await userModel.findOne({ email: email.toLowerCase() })
+         let uniquePhone = await userModel.findOne({ phone: phone })
+         let duplicate = ""
+         if (uniqueEmail) duplicate += "Email,"
+         if (uniquePhone) duplicate += "Phone "
+         if (uniqueEmail || uniquePhone) {
+            return res.status(409).send({ status: false, message: `${duplicate}is already registered here provide unique`})
+         }
+
          // psswd validation
          if (!passwordRegex.test(password)) {
             return res.status(400).send({ status: false, message: "password length 8 to 15 char, it must contain 1 upperCase, 1 lowerCase, 1 Number, 1 Special Character" })
          }
-         //  checking email or phone number unique or not here 
-         let uniqueEmail = await userModel.findOne({ email: email })
-         if (uniqueEmail) {
-            return res.status(400).send({ status: false, message: "Email is already registered here provide unique email" })
-         }
-         let uniquePhone = await userModel.findOne({ phone: phone })
-         if (uniquePhone) {
-            return res.status(400).send({ status: false, message: "Number is already registered here provide unique Number" })
-         }
+         //==============================
          if (address) {
             if (isValidObject(address)) {
                const { street, city, pincode } = address
@@ -46,18 +51,19 @@ const createUser = async function (req, res) {
                if (!isValid(street)) empStr += "street, "
                if (!isValid(city)) empStr += "city, "
                if (!isValidPinCode(pincode)) empStr += "pincode "
-
-               if (!isValid(street) && !isValid(city) && !isValidPinCode(pincode)) {
-                  return res.status(400).send({ status: false, message: `Address must conatin ${empStr} and valid fields` })
+               if (!isValid(street) || !isValid(city) || !isValidPinCode(pincode)) {
+                  return res.status(400).send({ status: false, message: `Address must conatin ${empStr}and valid fields` })
                }
-            } else {
+            }
+            else {
                return res.status(400).send({ status: false, message: "Address must be in object form street, city, pincode" })
             }
          }
          let savedUser = await userModel.create(userData)
          return res.status(201).send({ status: true, message: "Success", data: savedUser })
       }
-   } catch (err) {
+   } 
+   catch (err) {
       return res.status(500).send({ status: false, message: err.message })
    }
 }
@@ -77,9 +83,9 @@ const loginUser = async function (req, res) {
       if (!email.match(/^\w+@[a-zA-Z_]+?\.[a-zA-Z]{2,3}$/)) {
          return res.status(400).send({ status: false, message: "Wrong email format" });
       }
-      let user = await userModel.findOne({ email: email, password: password });
+      let user = await userModel.findOne({ email: email.toLowerCase(), password: password });
       if (!user) {
-         return res.status(401).send({ status: false, message: " Email or Password wrong" });
+         return res.status(404).send({ status: false, message: " Email or Password wrong" });
       }
       const iat = Date.now()
       const exp = (iat) + (24 * 60 * 60 * 1000)
@@ -94,7 +100,8 @@ const loginUser = async function (req, res) {
       res.status(200).setHeader("x-api-key", token);
       return res.status(200).send({ status: true, message: "token will be valid for 24 hrs", data: { token: token } });
 
-   } catch (err) {
+   } 
+   catch (err) {
       return res.status(500).send({ status: false, message: err.message })
    }
 }
