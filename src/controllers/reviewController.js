@@ -62,12 +62,10 @@ const updateReview = async function (req, res) {
             return res.status(400).send({ status: false, message: "please provide valid reviewId" })
         }
         let checkBook = await bookModel.findOne({ _id: bookId, isDeleted: false })
-        // console.log(checkBook,reviewId)
         if (!checkBook) {
             return res.status(404).send({ status: false, message: "Book not found" })
         }
         let checkReview = await reviewModel.findOne({ _id: reviewId, bookId:bookId, isDeleted: false })
-        console.log(checkReview)
         if (checkReview) {
             if (Object.keys(req.body).length === 0) {
                 return res.status(400).send({ status: false, message: "To update any fields write valid key and value" })

@@ -52,7 +52,7 @@ const createUser = async function (req, res) {
                if (!isValid(city)) empStr += "city, "
                if (!isValidPinCode(pincode)) empStr += "pincode "
                if (!isValid(street) || !isValid(city) || !isValidPinCode(pincode)) {
-                  return res.status(400).send({ status: false, message: `Address must conatin ${empStr}and valid fields` })
+                  return res.status(400).send({ status: false, message: `Address must object conatin ${empStr}and valid fields` })
                }
             }
             else {

@@ -34,7 +34,8 @@ const bookSchema = new mongoose.Schema({
     default: 0,
   },
   deletedAt: {
-    type: Date
+    type: Date,
+    default:null
   },
   isDeleted: {
     type: Boolean,

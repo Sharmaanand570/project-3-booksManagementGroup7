@@ -11,7 +11,7 @@ const authenticate = function (req, res, next) {
         else {
             jwt.verify(token, "project/booksManagementGroup7", function (err, data) {
                 if (err) {
-                    return res.status(400).send({ status: false, message: err })
+                    return res.status(400).send({ status: false, message: err.message })
                 }
                 else {
                     req.loginUserId = data.userId
