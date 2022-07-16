@@ -26,7 +26,7 @@ const createUser = async function (req, res) {
          if (!isValid(phone) || !mobileRegex.test(phone)) inValid = inValid + "phone, "
          if (!isValid(email) || !emailRegex.test(email)) inValid = inValid + "email "
          if (!validTitle(title) || !isValid(name) || !nameRegex.test(name) || !isValid(phone) || !mobileRegex.test(phone) || !isValid(email) || !emailRegex.test(email)) {
-            return res.status(400).send({ status: false, message: `Pliz provide valid ${inValid}and it is mandatory fields` })
+            return res.status(400).send({ status: false, message: `Please provide valid ${inValid}and it is mandatory fields` })
          }
 
          //  checking email or phone number unique or not here 
