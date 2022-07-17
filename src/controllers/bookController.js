@@ -3,13 +3,45 @@ const userModel = require("../models/userModel")
 const bookModel = require("../models/bookModel")
 const reviewModel = require("../models/reviewModel")
 const validator = require("../validators/validator")
+const aws = require("aws-sdk")
+
+//to connect with the AWS with credentials
+aws.config.update({
+    accessKeyId: "AKIAY3L35MCRVFM24Q7U",
+    secretAccessKey: "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",
+    region: "ap-south-1"
+})
+
+//to upload the image file on AWS
+const uplodFile = async function (file) {
+    return new Promise(function (resolve, reject) {
+        let s3 = new aws.S3({ apiVersion: '2006-03-01' });
+
+        var uploadParams = {
+            Body: file.buffer,
+            ACL: "public-read",
+            Bucket: "classroom-training-bucket",
+            Key: "booksManagementGroup7/" + file.originalname
+        }
+
+        s3.upload(uploadParams, function (err, data) {
+            if (err) {
+                return reject({ "error": err })
+            }
+            console.log(data)
+            console.log("file uploaded succesfully")
+            return resolve(data.Location)
+        })
+    })
+}
 
 //<<<<<<<<<<<<<<<<<<============================================CREATE BOOKS========================================>>>>>>>>>>>>>>>>>>>
 
 const createBook = async function (req, res) {
     try {
-        let { title, excerpt, userId, ISBN, category, subcategory, releasedAt } = req.body
-        if (Object.keys(req.body).length == 0) {
+        let data = JSON.parse(JSON.stringify(req.body))
+        let { title, excerpt, userId, ISBN, category, subcategory, releasedAt } = data
+        if (Object.keys(data).length == 0) {
             return res.status(400).send({ status: false, message: "Please enter the data to create book" })
         }
         if ((title && excerpt && userId && ISBN && category && subcategory && releasedAt)) {
@@ -34,7 +66,6 @@ const createBook = async function (req, res) {
                 if (!validator.isValidISBN(ISBN)) {
                     return res.status(400).send({ status: false, message: "Please enter valid ISBN Number and size should be of 13 or 10 e.g: '9781234567890' or '1234567890'" })
                 }
-                ISBN = ISBN.toString()
                 if (ISBN.trim().length == 10) {
                     ISBN = "978" + ISBN.trim()
                 }
@@ -45,17 +76,30 @@ const createBook = async function (req, res) {
                 if (!validator.isValid(category)) {
                     return res.status(400).send({ status: false, message: "Please enter valid category in String" })
                 }
-                if (!validator.isValidArray(subcategory)) {
+                if (!validator.isValid(subcategory)) {
                     return res.status(400).send({ status: false, message: "Please enter valid subcategory in array (string) and no empty string in array e.g:['subcategory1']" })
                 }
+                subcategory = subcategory.split(",").map(a => a.trim())
                 if (!validator.isValidDate(releasedAt)) {
                     return res.status(400).send({ status: false, message: "Please Enter valid releasedAt in string and format should be in 'YYYY-MM-DD'" });
                 }
+                let bookCoverFile = req.files
+                if (bookCoverFile.length == 0) {
+                    return res.status(400).send({ status: false, message: "Please Upload the Image" })
+                }
+                if (bookCoverFile.length > 1) {
+                    return res.status(400).send({ status: false, message: "Please upload only one image" })
+                }
+                if(!validator.isValidImage(bookCoverFile[0].originalname)){
+                    return res.status(400).send({ status: false, message: "Please upload only image file with extension jpg, png" })
+                }
+                let bookCoverURL = await uplodFile(bookCoverFile[0])
                 const bookData = {
                     title: title.trim().toUpperCase(),
                     excerpt: excerpt.trim(),
                     userId: userId.trim(),
                     ISBN: ISBN.trim(),
+                    bookCover: bookCoverURL,
                     category: category.trim(),
                     subcategory: subcategory,
                     releasedAt: releasedAt.trim()

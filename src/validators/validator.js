@@ -60,4 +60,10 @@ const isValidPinCode = (value) => {
     return result
 }
 
-module.exports = { isValid, isValidArray, isValidISBN, isValidObject, validTitle, isValidDate, isValidRating , isValidPinCode}
+const isValidImage = (value) => {
+    const regEx = /\.(gif|jpeg|jpg|png|webp|bmp)$/
+    const result = regEx.test(value)
+    return result
+}
+
+module.exports = { isValid, isValidArray, isValidISBN, isValidObject, validTitle, isValidDate, isValidRating , isValidPinCode, isValidImage}
