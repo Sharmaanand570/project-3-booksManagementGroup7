@@ -97,8 +97,15 @@ const loginUser = async function (req, res) {
          },
          "project/booksManagementGroup7"
       );
-      res.status(200).setHeader("x-api-key", token);
-      return res.status(200).send({ status: true, message: "token will be valid for 24 hrs", data: { token: token } });
+
+      //res.status(200).setHeader("x-api-key", token);
+
+      const data ={
+         userId: user._id,
+         token: token
+    }
+
+      return res.status(200).send({ status: true, message: "token will be valid for 24 hrs", data: { data: data} });
 
    } 
    catch (err) {
